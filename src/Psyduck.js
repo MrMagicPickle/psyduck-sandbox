@@ -45,9 +45,8 @@ const updateModelPosition = (model, timeInSeconds) => {
     _Q.setFromAxisAngle(_A, 4.0 * -Math.PI * timeInSeconds * acceleration.y);
     _R.multiply(_Q);
   }
-  // console.log(_R, '<< R')
-  controlObject.quaternion.copy(_R);
 
+  controlObject.quaternion.copy(_R);
 
   /* Forward */
   const forward = new THREE.Vector3(0, 0, 1);
@@ -67,13 +66,10 @@ const updateModelPosition = (model, timeInSeconds) => {
   controlObject.position.add(sideways);
 
   model.position.copy(controlObject.position);
-  // console.log(model.position);
+
   if (!model.current) {
     return;
   }
-  // model.current.position.copy(controlObject.position);
-
-
 }
 
 function Psyduck() {
@@ -82,12 +78,30 @@ function Psyduck() {
   const mixer = useRef(null);
   const action = useRef(null);
   const model = useRef(null);
-  console.log(gltf.scene, '<< gltf');
-  // const duckModel = gltf.scene.children.find(child => child.name === 'Sketchfab_model');
+
   const duckModel = gltf.scene;
-  // const rotation = [0, 0, -Math.PI / 2];
-  // const rotation = [-Math.PI/2, 0, 0];
   const rotation = [0, 0, 0];
+
+  const updateModelAnimation = () => {
+    if (!action.current) {
+      return;
+    }
+
+    if (window.inputForward || window.inputBackward) {
+      console.log(action.current, '<< current');
+      action.current.walk.play();
+      return;
+    }
+    /* TODO:
+      1. Rename animation in blender to WALK (line 113)
+      2. Create new animation called idle
+      3. Write code to transition between idle and walking animation.
+    */
+    const oldAction = action.current.walk;
+
+    action.current.wawlk.halt();
+  }
+
   useEffect(() => {
 
     if (gltf.animations.length > 0) {
@@ -95,34 +109,37 @@ function Psyduck() {
       mixer.current = new THREE.AnimationMixer(duckModel);
       // Play the first animation (index 0)
       // mixer.current.timeScale = 1.5;
-      action.current = mixer.current.clipAction(gltf.animations[0]);
-      action.current.play();
+
+      // TODO: rename animation in blender to WALK
+      const walkAnimation = gltf.animations[0];
+
+      // action.current = mixer.current.clipAction(walkAnimation);
+      action.current = {
+        walk: mixer.current.clipAction(walkAnimation)
+      };
+      action.current.walk.play();
     }
 
     // Assign key listeners
     initInputController();
-    // duckModel.current = gltf.scene.children.find(child => child.name === 'Sketchfab_model');
-    // console.log(duckModel.current, '<< current');
   }, [gltf]);
 
   // Update the animation mixer on each frame
   useFrame((state, delta) => {
     if (mixer.current) {
+      updateModelAnimation();
       mixer.current.update(delta);
     }
 
     const time = state.clock.getElapsedTime();
-    // model.current.position.z = time;
+
     if (model.current) {
       updateModelPosition(model.current, delta);
     }
+
   });
 
   useHelper(model, THREE.BoxHelper, 'cyan');
-
-  useEffect(() => {
-    window.action = action;
-  }, []);
 
   return <primitive ref={model} object={duckModel} position={[0, -1, 0]} rotation={rotation}/>
 }
