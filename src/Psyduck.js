@@ -73,7 +73,7 @@ const updateModelPosition = (model, timeInSeconds) => {
 }
 
 function Psyduck() {
-  const gltf = useLoader(GLTFLoader, '/models/psyduck-anim5.glb');
+  const gltf = useLoader(GLTFLoader, '/models/psyduck-anim6.glb');
 
   const mixer = useRef(null);
   const action = useRef(null);
@@ -88,18 +88,27 @@ function Psyduck() {
     }
 
     if (window.inputForward || window.inputBackward) {
-      console.log(action.current, '<< current');
-      action.current.walk.play();
+      if (!action.current.walk.isRunning()) {
+        action.current.walk.reset();
+        action.current.walk.play();
+        /* Cross fade from basically fades out the idle animation whilst
+         * fading in the walk animation.
+         * Fading in seems to gradually increase weightage to 100% on the animation
+         * Fading out seems to gradually decrease weightage to 0% on the animation.
+         * Because I think an animation mixer assigns a bunch of animations simultaneously.
+         * So it kinda stops the old one, whilst fades in the new one by playing with weightages.
+         */
+        action.current.walk.crossFadeFrom(action.current.idle, 0.5);
+      }
       return;
     }
-    /* TODO:
-      1. Rename animation in blender to WALK (line 113)
-      2. Create new animation called idle
-      3. Write code to transition between idle and walking animation.
-    */
     const oldAction = action.current.walk;
-
-    action.current.wawlk.halt();
+    const newAction = action.current.idle;
+    if (!newAction.isRunning()) {
+      newAction.reset();
+      newAction.play();
+      newAction.crossFadeFrom(oldAction, 0.5);
+    }
   }
 
   useEffect(() => {
@@ -110,12 +119,13 @@ function Psyduck() {
       // Play the first animation (index 0)
       // mixer.current.timeScale = 1.5;
 
-      // TODO: rename animation in blender to WALK
-      const walkAnimation = gltf.animations[0];
-
+      const walkAnimation = gltf.animations.find(animation => animation.name === 'walk');
+      const idleAnimation = gltf.animations.find(animation => animation.name === 'idle');
+      console.log(walkAnimation, '<< walk animation');
       // action.current = mixer.current.clipAction(walkAnimation);
       action.current = {
-        walk: mixer.current.clipAction(walkAnimation)
+        walk: mixer.current.clipAction(walkAnimation),
+        idle: mixer.current.clipAction(idleAnimation),
       };
       action.current.walk.play();
     }
