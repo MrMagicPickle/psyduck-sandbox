@@ -16,3 +16,9 @@ code {
 #root {
   height: 100%;
 }
+
+#dbg-text {
+  position: absolute;
+  top: 50px;
+  left: 50px;
+}
