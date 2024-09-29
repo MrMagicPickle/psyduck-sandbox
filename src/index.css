@@ -21,4 +21,10 @@ code {
   position: absolute;
   top: 50px;
   left: 50px;
+  width: 500px;
+  height: 500px;
+}
+
+#dbg-text > iframe {
+  border: none;
 }
