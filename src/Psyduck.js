@@ -7,7 +7,10 @@ import { initInputController } from './InputController';
 
 const updateModelPosition = (model, timeInSeconds) => {
   /* Manage velocity */
-  const acceleration = new THREE.Vector3(1, 0.25, 50.0);
+
+  // const acceleration = new THREE.Vector3(1, 0.25, 50.0);
+  const acceleration = new THREE.Vector3(1, 0.25, 250.0);
+
   const decceleration = new THREE.Vector3(-0.0005, -0.0001, -5.0);
   const velocity = new THREE.Vector3(0, 0, 0);
   const frameDecceleration = new THREE.Vector3(
@@ -151,7 +154,13 @@ function Psyduck() {
 
   useHelper(model, THREE.BoxHelper, 'cyan');
 
-  return <primitive ref={model} object={duckModel} position={[0, -1, 0]} rotation={rotation}/>
+  return <primitive
+    ref={model}
+    object={duckModel}
+    position={[0, 0, 0]}
+    rotation={rotation}
+    name="Player" // Grass looks for this name and adjusts based on this primitive's position
+  />
 }
 
 export default Psyduck;
